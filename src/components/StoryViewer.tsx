@@ -2,6 +2,8 @@ import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { ChevronLeft, ChevronRight, Download, Share2 } from "lucide-react";
+import { jsPDF } from "jspdf";
+import { useToast } from "@/hooks/use-toast";
 
 export interface StoryPage {
   text: string;
@@ -15,6 +17,8 @@ interface StoryViewerProps {
 
 export const StoryViewer = ({ pages, title }: StoryViewerProps) => {
   const [currentPage, setCurrentPage] = useState(0);
+  const [isDownloading, setIsDownloading] = useState(false);
+  const { toast } = useToast();
 
   const nextPage = () => {
     if (currentPage < pages.length - 1) {
@@ -25,6 +29,80 @@ export const StoryViewer = ({ pages, title }: StoryViewerProps) => {
   const prevPage = () => {
     if (currentPage > 0) {
       setCurrentPage(currentPage - 1);
+    }
+  };
+
+  const downloadStory = async () => {
+    setIsDownloading(true);
+    toast({
+      title: "Preparing download",
+      description: "Creating your storybook PDF...",
+    });
+
+    try {
+      const pdf = new jsPDF({
+        orientation: "portrait",
+        unit: "mm",
+        format: "a4",
+      });
+
+      const pageWidth = pdf.internal.pageSize.getWidth();
+      const pageHeight = pdf.internal.pageSize.getHeight();
+      const margin = 15;
+      const contentWidth = pageWidth - 2 * margin;
+
+      // Add title page
+      pdf.setFontSize(24);
+      pdf.setFont("helvetica", "bold");
+      const titleLines = pdf.splitTextToSize(title, contentWidth);
+      pdf.text(titleLines, pageWidth / 2, pageHeight / 2, { align: "center" });
+
+      // Add each story page
+      for (let i = 0; i < pages.length; i++) {
+        pdf.addPage();
+
+        // Convert base64 image to proper format
+        const imgData = pages[i].image;
+        
+        // Add image
+        const imgWidth = contentWidth;
+        const imgHeight = (imgWidth * 3) / 4; // 4:3 aspect ratio
+        pdf.addImage(imgData, "PNG", margin, margin, imgWidth, imgHeight);
+
+        // Add text below image
+        pdf.setFontSize(12);
+        pdf.setFont("helvetica", "normal");
+        const textY = margin + imgHeight + 10;
+        const textLines = pdf.splitTextToSize(pages[i].text, contentWidth);
+        pdf.text(textLines, pageWidth / 2, textY, { align: "center" });
+
+        // Add page number
+        pdf.setFontSize(10);
+        pdf.text(
+          `Page ${i + 1} of ${pages.length}`,
+          pageWidth / 2,
+          pageHeight - 10,
+          { align: "center" }
+        );
+      }
+
+      // Save the PDF
+      const fileName = `${title.replace(/[^a-z0-9]/gi, '_').toLowerCase()}.pdf`;
+      pdf.save(fileName);
+
+      toast({
+        title: "Download complete!",
+        description: "Your storybook has been saved.",
+      });
+    } catch (error) {
+      console.error("Error creating PDF:", error);
+      toast({
+        variant: "destructive",
+        title: "Download failed",
+        description: "Failed to create PDF. Please try again.",
+      });
+    } finally {
+      setIsDownloading(false);
     }
   };
 
@@ -93,9 +171,14 @@ export const StoryViewer = ({ pages, title }: StoryViewerProps) => {
         </Card>
 
         <div className="flex gap-4 justify-center mt-8">
-          <Button variant="outline" className="rounded-xl">
+          <Button 
+            variant="outline" 
+            className="rounded-xl"
+            onClick={downloadStory}
+            disabled={isDownloading}
+          >
             <Download className="mr-2 h-4 w-4" />
-            Download Story
+            {isDownloading ? "Creating PDF..." : "Download Story"}
           </Button>
           <Button variant="outline" className="rounded-xl">
             <Share2 className="mr-2 h-4 w-4" />
