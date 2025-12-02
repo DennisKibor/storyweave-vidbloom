@@ -33,7 +33,7 @@ const Index = () => {
       if (storyError) throw storyError;
 
       const { title, pages } = storyData;
-      setStoryTitle(title);
+      setStoryTitle(formData.title || title);
       setStoryAuthor(formData.authorName || "");
 
       // Generate images for each page
