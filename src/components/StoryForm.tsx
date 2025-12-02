@@ -16,6 +16,7 @@ export interface StoryFormData {
   theme: string;
   setting: string;
   mood: string;
+  authorName: string;
 }
 
 export const StoryForm = ({ onGenerate, isGenerating }: StoryFormProps) => {
@@ -24,6 +25,7 @@ export const StoryForm = ({ onGenerate, isGenerating }: StoryFormProps) => {
     theme: "",
     setting: "",
     mood: "adventurous",
+    authorName: "",
   });
 
   const handleSubmit = (e: React.FormEvent) => {
@@ -41,6 +43,19 @@ export const StoryForm = ({ onGenerate, isGenerating }: StoryFormProps) => {
           </div>
 
           <form onSubmit={handleSubmit} className="space-y-6">
+            <div className="space-y-2">
+              <Label htmlFor="authorName" className="text-foreground font-medium">
+                Author Name
+              </Label>
+              <Input
+                id="authorName"
+                placeholder="e.g., Your name"
+                value={formData.authorName}
+                onChange={(e) => setFormData({ ...formData, authorName: e.target.value })}
+                className="bg-background/50 border-border/50 focus:border-primary rounded-xl"
+              />
+            </div>
+
             <div className="space-y-2">
               <Label htmlFor="character" className="text-foreground font-medium">
                 Main Character

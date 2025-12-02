@@ -13,9 +13,10 @@ export interface StoryPage {
 interface StoryViewerProps {
   pages: StoryPage[];
   title: string;
+  authorName?: string;
 }
 
-export const StoryViewer = ({ pages, title }: StoryViewerProps) => {
+export const StoryViewer = ({ pages, title, authorName }: StoryViewerProps) => {
   const [currentPage, setCurrentPage] = useState(0);
   const [isDownloading, setIsDownloading] = useState(false);
   const { toast } = useToast();
@@ -55,7 +56,14 @@ export const StoryViewer = ({ pages, title }: StoryViewerProps) => {
       pdf.setFontSize(24);
       pdf.setFont("helvetica", "bold");
       const titleLines = pdf.splitTextToSize(title, contentWidth);
-      pdf.text(titleLines, pageWidth / 2, pageHeight / 2, { align: "center" });
+      pdf.text(titleLines, pageWidth / 2, pageHeight / 2 - 10, { align: "center" });
+      
+      // Add author name if provided
+      if (authorName) {
+        pdf.setFontSize(14);
+        pdf.setFont("helvetica", "italic");
+        pdf.text(`by ${authorName}`, pageWidth / 2, pageHeight / 2 + 15, { align: "center" });
+      }
 
       // Add each story page
       for (let i = 0; i < pages.length; i++) {
@@ -111,6 +119,9 @@ export const StoryViewer = ({ pages, title }: StoryViewerProps) => {
       <div className="container mx-auto max-w-5xl">
         <div className="text-center mb-8">
           <h2 className="text-4xl font-bold text-foreground mb-2">{title}</h2>
+          {authorName && (
+            <p className="text-muted-foreground italic mb-1">by {authorName}</p>
+          )}
           <p className="text-muted-foreground">
             Page {currentPage + 1} of {pages.length}
           </p>
