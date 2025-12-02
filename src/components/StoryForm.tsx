@@ -16,6 +16,7 @@ export interface StoryFormData {
   character: string;
   theme: string;
   setting: string;
+  plot: string;
   mood: string;
   authorName: string;
   pageCount: number;
@@ -28,6 +29,7 @@ export const StoryForm = ({ onGenerate, isGenerating }: StoryFormProps) => {
     character: "",
     theme: "",
     setting: "",
+    plot: "",
     mood: "adventurous",
     authorName: "",
     pageCount: 5,
@@ -113,6 +115,19 @@ export const StoryForm = ({ onGenerate, isGenerating }: StoryFormProps) => {
                 value={formData.setting}
                 onChange={(e) => setFormData({ ...formData, setting: e.target.value })}
                 required
+                className="bg-background/50 border-border/50 focus:border-primary rounded-xl min-h-[100px]"
+              />
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="plot" className="text-foreground font-medium">
+                Story Plot
+              </Label>
+              <Textarea
+                id="plot"
+                placeholder="e.g., A young dragon discovers a hidden treasure but must choose between keeping it or helping a village in need"
+                value={formData.plot}
+                onChange={(e) => setFormData({ ...formData, plot: e.target.value })}
                 className="bg-background/50 border-border/50 focus:border-primary rounded-xl min-h-[100px]"
               />
             </div>
