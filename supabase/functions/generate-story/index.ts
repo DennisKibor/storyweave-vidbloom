@@ -11,14 +11,21 @@ serve(async (req) => {
   }
 
   try {
-    const { character, theme, setting, mood } = await req.json();
+    const { character, theme, setting, mood, pageCount = 5, storyLength = "medium" } = await req.json();
     const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
 
     if (!LOVABLE_API_KEY) {
       throw new Error("LOVABLE_API_KEY is not configured");
     }
 
-    console.log("Generating story with:", { character, theme, setting, mood });
+    console.log("Generating story with:", { character, theme, setting, mood, pageCount, storyLength });
+
+    const lengthDescriptions: Record<string, string> = {
+      short: "1-2 sentences",
+      medium: "2-3 sentences",
+      long: "3-4 sentences",
+    };
+    const textLength = lengthDescriptions[storyLength] || "2-3 sentences";
 
     const systemPrompt = `You are a creative children's storybook writer. Create engaging, age-appropriate stories with vivid descriptions and positive messages. 
 
@@ -27,19 +34,19 @@ Your response must be valid JSON in this exact format:
   "title": "Story Title",
   "pages": [
     {
-      "text": "The text for this page (2-3 sentences)",
+      "text": "The text for this page (${textLength})",
       "imagePrompt": "Detailed visual description for illustration (describe the scene, characters, colors, mood)"
     }
   ]
 }
 
-Create exactly 5 pages. Each page should advance the story naturally. Image prompts should be detailed and vivid.`;
+Create exactly ${pageCount} pages. Each page should advance the story naturally. Image prompts should be detailed and vivid.`;
 
     const userPrompt = `Create a ${mood} children's story about ${character}. 
 Theme: ${theme}
 Setting: ${setting}
 
-Make it engaging, with a clear beginning, middle, and end. Each page should have 2-3 sentences of story text and a detailed image prompt describing what should be illustrated.`;
+Make it engaging, with a clear beginning, middle, and end. Each page should have ${textLength} of story text and a detailed image prompt describing what should be illustrated.`;
 
     const response = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
       method: "POST",
