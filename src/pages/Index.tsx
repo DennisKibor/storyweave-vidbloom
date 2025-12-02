@@ -9,6 +9,7 @@ const Index = () => {
   const [isGenerating, setIsGenerating] = useState(false);
   const [storyPages, setStoryPages] = useState<StoryPage[] | null>(null);
   const [storyTitle, setStoryTitle] = useState("");
+  const [storyAuthor, setStoryAuthor] = useState("");
   const storyFormRef = useRef<HTMLDivElement>(null);
   const { toast } = useToast();
 
@@ -33,6 +34,7 @@ const Index = () => {
 
       const { title, pages } = storyData;
       setStoryTitle(title);
+      setStoryAuthor(formData.authorName || "");
 
       // Generate images for each page
       const pagesWithImages: StoryPage[] = [];
@@ -96,7 +98,7 @@ const Index = () => {
         <StoryForm onGenerate={handleGenerateStory} isGenerating={isGenerating} />
       </div>
 
-      {storyPages && <StoryViewer pages={storyPages} title={storyTitle} />}
+      {storyPages && <StoryViewer pages={storyPages} title={storyTitle} authorName={storyAuthor} />}
     </div>
   );
 };
