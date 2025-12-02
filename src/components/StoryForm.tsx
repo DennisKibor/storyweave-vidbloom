@@ -18,6 +18,8 @@ export interface StoryFormData {
   setting: string;
   mood: string;
   authorName: string;
+  pageCount: number;
+  storyLength: string;
 }
 
 export const StoryForm = ({ onGenerate, isGenerating }: StoryFormProps) => {
@@ -28,6 +30,8 @@ export const StoryForm = ({ onGenerate, isGenerating }: StoryFormProps) => {
     setting: "",
     mood: "adventurous",
     authorName: "",
+    pageCount: 5,
+    storyLength: "medium",
   });
 
   const handleSubmit = (e: React.FormEvent) => {
@@ -129,6 +133,41 @@ export const StoryForm = ({ onGenerate, isGenerating }: StoryFormProps) => {
                 <option value="mysterious">Mysterious</option>
                 <option value="funny">Funny</option>
               </select>
+            </div>
+
+            <div className="grid grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <Label htmlFor="pageCount" className="text-foreground font-medium">
+                  Number of Pages
+                </Label>
+                <select
+                  id="pageCount"
+                  value={formData.pageCount}
+                  onChange={(e) => setFormData({ ...formData, pageCount: parseInt(e.target.value) })}
+                  className="w-full px-4 py-3 bg-background/50 border border-border/50 rounded-xl focus:outline-none focus:border-primary transition-colors text-foreground"
+                >
+                  <option value={3}>3 pages</option>
+                  <option value={5}>5 pages</option>
+                  <option value={7}>7 pages</option>
+                  <option value={10}>10 pages</option>
+                </select>
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="storyLength" className="text-foreground font-medium">
+                  Text per Page
+                </Label>
+                <select
+                  id="storyLength"
+                  value={formData.storyLength}
+                  onChange={(e) => setFormData({ ...formData, storyLength: e.target.value })}
+                  className="w-full px-4 py-3 bg-background/50 border border-border/50 rounded-xl focus:outline-none focus:border-primary transition-colors text-foreground"
+                >
+                  <option value="short">Short (1-2 sentences)</option>
+                  <option value="medium">Medium (2-3 sentences)</option>
+                  <option value="long">Long (3-4 sentences)</option>
+                </select>
+              </div>
             </div>
 
             <Button
