@@ -11,14 +11,14 @@ serve(async (req) => {
   }
 
   try {
-    const { character, theme, setting, mood, pageCount = 5, storyLength = "medium" } = await req.json();
+    const { character, theme, setting, mood, plot = "", pageCount = 5, storyLength = "medium" } = await req.json();
     const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
 
     if (!LOVABLE_API_KEY) {
       throw new Error("LOVABLE_API_KEY is not configured");
     }
 
-    console.log("Generating story with:", { character, theme, setting, mood, pageCount, storyLength });
+    console.log("Generating story with:", { character, theme, setting, mood, plot, pageCount, storyLength });
 
     const lengthDescriptions: Record<string, string> = {
       short: "1-2 sentences",
@@ -26,6 +26,8 @@ serve(async (req) => {
       long: "3-4 sentences",
     };
     const textLength = lengthDescriptions[storyLength] || "2-3 sentences";
+
+    const plotInstruction = plot ? `\nPlot: ${plot}` : "";
 
     const systemPrompt = `You are a creative children's storybook writer. Create engaging, age-appropriate stories with vivid descriptions and positive messages. 
 
@@ -44,7 +46,7 @@ Create exactly ${pageCount} pages. Each page should advance the story naturally.
 
     const userPrompt = `Create a ${mood} children's story about ${character}. 
 Theme: ${theme}
-Setting: ${setting}
+Setting: ${setting}${plotInstruction}
 
 Make it engaging, with a clear beginning, middle, and end. Each page should have ${textLength} of story text and a detailed image prompt describing what should be illustrated.`;
 
