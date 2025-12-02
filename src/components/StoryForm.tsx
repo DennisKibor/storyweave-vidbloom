@@ -12,6 +12,7 @@ interface StoryFormProps {
 }
 
 export interface StoryFormData {
+  title: string;
   character: string;
   theme: string;
   setting: string;
@@ -21,6 +22,7 @@ export interface StoryFormData {
 
 export const StoryForm = ({ onGenerate, isGenerating }: StoryFormProps) => {
   const [formData, setFormData] = useState<StoryFormData>({
+    title: "",
     character: "",
     theme: "",
     setting: "",
@@ -43,6 +45,19 @@ export const StoryForm = ({ onGenerate, isGenerating }: StoryFormProps) => {
           </div>
 
           <form onSubmit={handleSubmit} className="space-y-6">
+            <div className="space-y-2">
+              <Label htmlFor="title" className="text-foreground font-medium">
+                Story Title
+              </Label>
+              <Input
+                id="title"
+                placeholder="e.g., The Adventures of Luna"
+                value={formData.title}
+                onChange={(e) => setFormData({ ...formData, title: e.target.value })}
+                className="bg-background/50 border-border/50 focus:border-primary rounded-xl"
+              />
+            </div>
+
             <div className="space-y-2">
               <Label htmlFor="authorName" className="text-foreground font-medium">
                 Author Name
