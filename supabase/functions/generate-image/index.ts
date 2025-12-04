@@ -12,10 +12,10 @@ serve(async (req) => {
 
   try {
     const { prompt } = await req.json();
-    const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
+    const GOOGLE_AI_API_KEY = Deno.env.get("GOOGLE_AI_API_KEY");
 
-    if (!LOVABLE_API_KEY) {
-      throw new Error("LOVABLE_API_KEY is not configured");
+    if (!GOOGLE_AI_API_KEY) {
+      throw new Error("GOOGLE_AI_API_KEY is not configured");
     }
 
     if (!prompt) {
@@ -24,39 +24,41 @@ serve(async (req) => {
 
     console.log("Generating image with prompt:", prompt);
 
-    const response = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
+    const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash-exp-image-generation:generateContent?key=${GOOGLE_AI_API_KEY}`, {
       method: "POST",
       headers: {
-        Authorization: `Bearer ${LOVABLE_API_KEY}`,
         "Content-Type": "application/json",
       },
       body: JSON.stringify({
-        model: "google/gemini-2.5-flash-image",
-        messages: [
-          {
-            role: "user",
-            content: prompt,
-          },
-        ],
-        modalities: ["image", "text"],
+        contents: [{ 
+          parts: [{ text: `Generate a children's book illustration: ${prompt}` }] 
+        }],
+        generationConfig: {
+          responseModalities: ["image", "text"],
+        },
       }),
     });
 
     if (!response.ok) {
       const errorText = await response.text();
-      console.error("AI Image API error:", response.status, errorText);
-      throw new Error(`AI Image API error: ${response.status}`);
+      console.error("Gemini Image API error:", response.status, errorText);
+      throw new Error(`Gemini Image API error: ${response.status}`);
     }
 
     const data = await response.json();
     console.log("Image generated successfully");
 
     // Extract the base64 image from response
-    const imageUrl = data.choices?.[0]?.message?.images?.[0]?.image_url?.url;
-
-    if (!imageUrl) {
-      throw new Error("No image returned from AI");
+    const parts = data.candidates?.[0]?.content?.parts;
+    const imagePart = parts?.find((part: any) => part.inlineData?.mimeType?.startsWith("image/"));
+    
+    if (!imagePart?.inlineData?.data) {
+      throw new Error("No image returned from Gemini");
     }
+
+    const base64Image = imagePart.inlineData.data;
+    const mimeType = imagePart.inlineData.mimeType || "image/png";
+    const imageUrl = `data:${mimeType};base64,${base64Image}`;
 
     return new Response(
       JSON.stringify({ image: imageUrl }),

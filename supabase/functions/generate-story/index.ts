@@ -12,10 +12,10 @@ serve(async (req) => {
 
   try {
     const { character, theme, setting, mood, plot = "", pageCount = 5, storyLength = "medium" } = await req.json();
-    const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
+    const GOOGLE_AI_API_KEY = Deno.env.get("GOOGLE_AI_API_KEY");
 
-    if (!LOVABLE_API_KEY) {
-      throw new Error("LOVABLE_API_KEY is not configured");
+    if (!GOOGLE_AI_API_KEY) {
+      throw new Error("GOOGLE_AI_API_KEY is not configured");
     }
 
     console.log("Generating story with:", { character, theme, setting, mood, plot, pageCount, storyLength });
@@ -29,7 +29,7 @@ serve(async (req) => {
 
     const plotInstruction = plot ? `\nPlot: ${plot}` : "";
 
-    const systemPrompt = `You are a creative children's storybook writer. Create engaging, age-appropriate stories with vivid descriptions and positive messages. 
+    const prompt = `You are a creative children's storybook writer. Create engaging, age-appropriate stories with vivid descriptions and positive messages. 
 
 Your response must be valid JSON in this exact format:
 {
@@ -42,45 +42,45 @@ Your response must be valid JSON in this exact format:
   ]
 }
 
-Create exactly ${pageCount} pages. Each page should advance the story naturally. Image prompts should be detailed and vivid.`;
+Create exactly ${pageCount} pages. Each page should advance the story naturally. Image prompts should be detailed and vivid.
 
-    const userPrompt = `Create a ${mood} children's story about ${character}. 
+Create a ${mood} children's story about ${character}. 
 Theme: ${theme}
 Setting: ${setting}${plotInstruction}
 
 Make it engaging, with a clear beginning, middle, and end. Each page should have ${textLength} of story text and a detailed image prompt describing what should be illustrated.`;
 
-    const response = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
+    const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${GOOGLE_AI_API_KEY}`, {
       method: "POST",
       headers: {
-        Authorization: `Bearer ${LOVABLE_API_KEY}`,
         "Content-Type": "application/json",
       },
       body: JSON.stringify({
-        model: "google/gemini-2.5-flash",
-        messages: [
-          { role: "system", content: systemPrompt },
-          { role: "user", content: userPrompt },
-        ],
-        temperature: 0.8,
+        contents: [{ parts: [{ text: prompt }] }],
+        generationConfig: {
+          temperature: 0.8,
+        },
       }),
     });
 
     if (!response.ok) {
       const errorText = await response.text();
-      console.error("AI API error:", response.status, errorText);
-      throw new Error(`AI API error: ${response.status}`);
+      console.error("Gemini API error:", response.status, errorText);
+      throw new Error(`Gemini API error: ${response.status}`);
     }
 
     const data = await response.json();
-    console.log("AI response received");
+    console.log("Gemini response received");
 
-    const content = data.choices[0].message.content;
+    const content = data.candidates?.[0]?.content?.parts?.[0]?.text;
     
+    if (!content) {
+      throw new Error("No content returned from Gemini");
+    }
+
     // Parse the JSON response
     let storyData;
     try {
-      // Try to extract JSON from markdown code blocks if present
       const jsonMatch = content.match(/```json\n?([\s\S]*?)\n?```/) || content.match(/```\n?([\s\S]*?)\n?```/);
       const jsonString = jsonMatch ? jsonMatch[1] : content;
       storyData = JSON.parse(jsonString.trim());
